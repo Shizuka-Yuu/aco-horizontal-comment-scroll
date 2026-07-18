@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Abema Comment Overlay (ACO)</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+        line-height: 1.6;
+      }
+      .container {
+        max-width: 800px;
+      }
+      .feature-box {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-left: 5px solid #0d6efd;
+        margin-bottom: 2rem;
+      }
+      .download-box {
+        background: #e9ecef;
+        padding: 2rem;
+        text-align: center;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+      }
+      .alert-warning {
+        font-size: 0.95rem;
+      }
+      .troubleshoot-box {
+        background: #fff3cd;
+        border: 1px solid #ffeeba;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-top: 2rem;
+      }
+      .thread-container {
+        margin-top: 3rem;
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 10px;
+      }
+      .issue-card {
+        border-bottom: 1px solid #dee2e6;
+        padding: 1rem 0;
+      }
+      .sns-area {
+        margin-bottom: 1rem;
+      }
+
+      /* --- 画像拡大モーダル用スタイル --- */
+      .image-modal {
+        display: none;
+        position: fixed;
+        z-index: 1100;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.85);
+        cursor: zoom-out;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .image-modal-content {
+        margin: auto;
+        display: block;
+        max-width: 90%;
+        max-height: 90%;
+        border-radius: 10px;
+        animation-name: zoomIn;
+        animation-duration: 0.3s;
+      }
+
+      @keyframes zoomIn {
+        from {
+          transform: scale(0);
+        }
+        to {
+          transform: scale(1);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header class="mb-5">
+        <h1 class="display-5">ACO Horizontal Comment Scroll (v1.0.0)</h1>
+        <p class="lead text-muted">
+          某動画サイト風にコメントを流すAbemaTV用ブラウザ拡張機能
+        </p>
+        <div class="sns-area d-flex justify-content-between align-items-center">
+          <a
+            href="https://x.com/21LXF3F40cN8g7g"
+            class="btn btn-outline-dark btn-sm"
+            target="_blank"
+            >開発者X (Twitter) @21LXF3F40cN8g7g</a
+          >
+          <a
+            href="https://example.com/path/to/aco_v1.0.0.zip"
+            class="btn btn-primary btn-sm"
+            >アドオンをダウンロード</a
+          >
+        </div>
+      </header>
+
+      <!-- ビジュアルセクション -->
+      <section id="preview" class="mb-5">
+        <div class="row">
+          <div class="col-md-6">
+            <figure>
+              <!-- 【修正】同じフォルダ内にある前提の相対パスに変更 -->
+              <img
+                src="Overvew_img_3.png"
+                class="img-fluid rounded"
+                alt="設定画面"
+              />
+              <figcaption class="text-muted small">設定画面の様子</figcaption>
+            </figure>
+          </div>
+          <div class="col-md-6">
+            <figure>
+              <!-- 【修正】同じフォルダ内にある前提の相対パスに変更 -->
+              <img
+                src="Overvew_img_2.png"
+                class="img-fluid rounded"
+                alt="コメント表示中"
+              />
+              <figcaption class="text-muted small">
+                オーバーレイ表示の様子
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="mt-3">
+          <video controls class="w-100 rounded">
+            <!-- 【修正】同じフォルダ内にある前提の相対パスに変更 -->
+            <source src="Overvew_video.mp4" type="video/mp4" />
+            お使いのブラウザは動画の再生に対応していません。
+          </video>
+          <p class="text-muted small">※コメントが流れる様子のデモ動画</p>
+        </div>
+      </section>
+
+      <section id="features" class="feature-box">
+        <h3>概要・機能</h3>
+        <p>
+          AbemaTVの視聴ページにて、画面を広く使いながらコメントを楽しめるようにする非公式拡張機能です。
+        </p>
+        <small>
+          <ul>
+            <li>
+              <strong>某動画サイト風コメント流し:</strong>
+              動画プレイヤー上にコメントを右から左へ流します。
+            </li>
+            <li>
+              <strong>DOM監視モード:</strong>
+              公式コメント欄のDOMを監視してコメントを抽出します。（※推奨モード）
+            </li>
+            <li>
+              <strong>API監視モード:</strong>
+              コメント欄を閉じてプレイヤーを最大化している場合、APIへ直接リクエストを送ってコメントを取得します。
+            </li>
+            <li>
+              <strong>描画制御:</strong>
+              数式ベースの衝突回避アルゴリズムにより、コメントが重ならないよう動的にレーンを決定します。
+            </li>
+            <li>
+              <strong>厳密なキューイング仕様:</strong> <br />・<strong
+                >鮮度チェック:</strong
+              >
+              各コメントに投入時のタイムスタンプを付与し、30秒以上経過した古いコメントを自動破棄することで、ページリロード時、一時停止後などのキュー溜まりによる大量放出（コメントの洪水）を防止します。
+              <br />・<strong>無制限の流速保持:</strong>
+              通常視聴時はコメントを一切破棄せず、理論上無限のキュー待機を許容します。これは、コメントを一つも漏らさず表示することこそが、ライブ視聴体験として最も誠実であるという設計思想によるものです。
+              <br />・<strong>優先度制御:</strong>
+              システムメッセージはキューの先頭へ即座に割り込みを行い、視聴者に重要な通知を逃さず届けます。
+            </li>
+            <li>
+              <strong>公式ブロックとの連携:</strong>
+              公式機能でブロックしたユーザーは、本拡張機能のオーバーレイからも即座に非表示となります。
+            </li>
+            <li>
+              <strong>オプション設定:</strong>
+              拡張機能の詳細ページから必要最小限の設定変更が可能です。
+            </li>
+            <li>
+              <strong>NGフィルター:</strong>
+              NGワード・文字数・正規表現によるフィルター設定が可能です。
+            </li>
+            <li>
+              <strong>ニュースチャンネル対応:</strong>
+              通常チャンネルとはバックエンドの仕様が異なる為、DOM監視モードを前提としています。コメント欄が閉じられている場合は一時的に適切なシステムメッセージが流れます。
+            </li>
+          </ul>
+          <p>
+            ※オーバーレイ自体の表示ON/OFFは、プレイヤー右下に追加された専用トグルボタンでいつでも切り替え可能です。
+          </p></small
+        >
+      </section>
+
+      <div class="download-box">
+        <h3>アドオンをダウンロード</h3>
+        <p>以下のリンクから最新版（ZIP）をダウンロードしてください。</p>
+        <a
+          href="https://example.com/path/to/aco_v1.0.0.zip"
+          class="btn btn-primary btn-lg"
+          >aco_v1.0.0.zip をダウンロード</a
+        >
+      </div>
+
+      <details id="changelog" class="mt-4" style="margin-bottom: 1rem">
+        <summary style="cursor: pointer; outline: none; margin-bottom: 0.5rem">
+          <h4 style="display: inline-block; margin: 0">更新履歴</h4>
+        </summary>
+        <div class="mt-2 ms-3">
+          <ul>
+            <li><strong>v1.0.0</strong> - 初回リリース (2026/7/17)</li>
+          </ul>
+        </div>
+      </details>
+
+      <section id="installation">
+        <h2>マニュアル導入手順</h2>
+
+        <div class="card mb-4">
+          <div class="card-body">
+            <h3>Google Chrome / Edge</h3>
+            <ol>
+              <li>ZIPファイルを解凍します。</li>
+              <li>
+                ブラウザの拡張機能管理ページ（<code>chrome://extensions</code>）を開きます。
+              </li>
+              <li>右上の「デベロッパーモード」をONにします。</li>
+              <li>
+                「パッケージ化されていない拡張機能を読み込む」をクリックし、解凍したフォルダを選択します。
+              </li>
+            </ol>
+            <div class="alert alert-warning">
+              <strong>注意:</strong>
+              開発者モードの警告が表示されることがありますが、<strong
+                >「無効にする」ボタンは押さないでください。押すと機能が停止します。</strong
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-4">
+          <div class="card-body">
+            <h3>Firefox</h3>
+            <ol>
+              <li>ZIPファイルを解凍します。</li>
+              <li>
+                ブラウザのアドレスバーに
+                <code>about:debugging</code> と入力し移動します。
+              </li>
+              <li>左側のメニューから「このFirefox」をクリックします。</li>
+              <li>
+                「一時的な拡張機能を読み込む...」をクリックし、フォルダ内の
+                <code>manifest.json</code> を選択します。
+              </li>
+            </ol>
+            <div class="alert alert-warning">
+              <strong>注意:</strong>
+              Firefoxの「一時的な拡張機能」は、<strong>ブラウザを閉じると設定がクリアされます。</strong>再起動のたびに上記の手順で再読み込みしてください。
+            </div>
+          </div>
+        </div>
+
+        <details id="compatibility" class="mt-4">
+          <summary
+            style="cursor: pointer; outline: none; margin-bottom: 0.5rem"
+          >
+            <h4 style="display: inline-block; margin: 0">
+              動作確認環境（目安）
+            </h4>
+          </summary>
+          <div class="mt-2 ms-3">
+            <p>
+              以下の環境にて動作を確認しています。これ以外のバージョンでも概ね動作する設計ですが、アップデートにより動作が不安定になる可能性があります。
+            </p>
+            <ul>
+              <li>
+                Google Chrome: バージョン 150.0.7871.124（公式ビルド） （64
+                ビット）以上
+              </li>
+              <li>Firefox: バージョン 152.0.6 (64 ビット) 以上</li>
+            </ul>
+          </div>
+        </details>
+
+        <details id="security" class="mt-4">
+          <summary
+            style="cursor: pointer; outline: none; margin-bottom: 0.5rem"
+          >
+            <h4 style="display: inline-block; margin: 0">
+              プライバシー・セキュリティ・権限について
+            </h4>
+          </summary>
+          <div class="mt-2 ms-3">
+            <p>
+              本拡張機能は、ユーザーのプライバシーと安全を最優先に設計されており、プログラムのソースコードはすべてGitHubにてオープンソース（MIT
+              License）で開示されています。
+            </p>
+            <ul>
+              <li>
+                <strong>必要な権限と使用目的:</strong> <br />・<code
+                  >manifest_version: 3</code
+                >
+                (最新のセキュアな拡張機能仕様) を採用しています。 <br />・<code
+                  >*://abema.tv/*</code
+                >
+                (content_scripts):
+                配信ページ上にコメントを重ねて描画するために使用します。
+                <br />・<code>storage</code> (permissions):
+                ユーザーの設定値（フォントサイズやNGワードなど）をブラウザ内部に保存・同期するために使用します。
+                <br />・<code>webRequest</code> &
+                <code>https://*.akamaized.net/*</code> (host_permissions):
+                プレイヤーが読み込むメディアセグメントのURL変化をローカルで監視し、番組スロットIDの切り替え（番組改編）を自動検知するために使用します。
+                <br />・<code>https://api.p-c3-e.abema-tv.com/*</code>
+                (host_permissions):
+                コメント欄を閉じた状態（API監視モード）の時に、公式コメントAPIからデータを直接フェッチするために使用します。
+              </li>
+              <li>
+                <strong>データ通信（ローカル完結設計）:</strong>
+                <br />API監視モード時のみ、AbemaTVの公式コメントAPIに対して直接リクエストを行います。また、番組切り替え検知用の動画セグメントURL監視もブラウザ内部（ローカル）でのマッチング処理のみで完結しています。
+                <br />これらで取得・検知した情報をアドオン作者や第三者の外部サーバーに送信（情報収集）することは一切ありません。
+              </li>
+              <li>
+                <strong>データ収集:</strong>
+                閲覧履歴、Cookie、パスワードなどの個人情報を取得・送信・保存することは一切ありません。すべてブラウザ内部のメモリおよびローカルストレージでの処理で完結します。
+              </li>
+            </ul>
+          </div>
+        </details>
+
+        <details id="uninstall" class="mt-4">
+          <summary
+            style="cursor: pointer; outline: none; margin-bottom: 0.5rem"
+          >
+            <h4 style="display: inline-block; margin: 0">
+              アンインストール手順
+            </h4>
+          </summary>
+          <div class="mt-2 ms-3">
+            <p>
+              本アドオンを不要になった場合は、以下の手順で完全に削除してください。
+            </p>
+            <ul>
+              <li>
+                <strong>ブラウザからの削除:</strong>
+                <ul>
+                  <li>
+                    <strong>Chrome/Edge:</strong>
+                    拡張機能管理ページ（<code>chrome://extensions</code>）を開き、本アドオンの「削除」ボタンをクリックしてください。
+                  </li>
+                  <li>
+                    <strong>Firefox:</strong>
+                    拡張機能管理ページ（<code>about:addons</code>）を開き、本アドオンの横の「…」から「削除」を選択してください。
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <strong>ディレクトリの削除:</strong>
+                本アドオン導入時に作成した解凍後のフォルダ（アドオン本体）を、PC上の保存先から手動で削除してください。
+              </li>
+            </ul>
+            <p>
+              ブラウザの機能削除に加え、ディレクトリを手動削除することでPC内から完全に削除されます。<br />これ以外にシステム設定ファイル等が残ることはありません。
+            </p>
+          </div>
+        </details>
+
+        <div class="troubleshoot-box">
+          <h4>💡 動作がおかしいときは（トラブルシューティング）</h4>
+          <p>
+            アドオンの挙動が不安定になった場合は、以下の手順を上から順にお試しください。
+          </p>
+          <ol>
+            <li>
+              <strong>アドオンの再読み込み:</strong>
+              拡張機能管理画面（Chrome系は更新アイコン、Firefoxは「再読み込み」）をクリック.
+            </li>
+            <li>
+              <strong>ページのリロード:</strong>
+              現在視聴中のタブを再読み込み（F5キー）。
+            </li>
+            <li>
+              <strong>ブラウザの再起動:</strong>
+              ブラウザを一度完全に終了し、再起動してください。<br />
+              <br /><small
+                >※Firefoxの場合は、再起動後に再度「一時的な拡張機能を読み込む」手順を行ってください。</small
+              >
+            </li>
+          </ol>
+        </div>
+
+        <div class="mt-4">
+          <h4>既知のバグ</h4>
+          <p>
+            コメントブロックを開くと右端から左側にブロックがせり出す、この時とコメントの排出が重なることで<br />スクリーン領域が一瞬で変化することによるコメントの衝突（重なり）が発生する事がある。<br />仕様上モードの切り替えを告知するシステムメッセージが衝突しやすい。
+          </p>
+          <p>
+            コメントオーバーレイの表示・非表示トグル用、拡張機能専用ボタンが押せなくなることがある。（特にChrome環境下）<br />公式のSPAによるレンダリングの上書きや既存要素の破壊によってボタンがゴースト化することに起因する。<br />ウインドウを一度最大化して戻す等の操作（レンダリングの強制）を行えば多分押せるようになったりする。
+          </p>
+        </div>
+
+        <div class="mt-4">
+          <h4>運用に関する考え方（DOM監視とAPI監視について）</h4>
+          <p>
+            本アドオンにはDOM監視とAPI監視の2つのモードがあります。公式側の描画負荷（DOM生成プロセス）と、拡張機能によるAPIポーリング負荷（ネットワークリクエスト）のどちらが軽量かは状況に依存します。
+          </p>
+          <p>
+            そのため、<strong>可能な限り公式コメント欄を展開した状態での「DOM監視モード」での視聴を推奨いたします。</strong>こちらは配信サービス本来の仕組みを尊重し、不要な通信を避ける最も安定した視聴スタイルであると考えています。API監視は、あくまでプレイヤーの没入感を優先し、コメント欄を閉じたい場合の代替手段としてご利用ください。
+          </p>
+        </div>
+      </section>
+
+      <section id="feedback" class="thread-container">
+        <h2>簡易スレッド（不具合・要望）</h2>
+        <p>
+          GitHubのIssueと連動しています。バグ報告や機能要望はこちらからどうぞ。
+        </p>
+        <a
+          href="https://github.com/Shizuka-Yuu/aco-horizontal-comment-scroll/issues/new"
+          class="btn btn-success btn-sm mb-3"
+          target="_blank"
+          >新規スレッドを投稿する</a
+        >
+        <div id="issue-list">
+          <p class="text-muted">スレッドを取得中...</p>
+        </div>
+      </section>
+
+      <section id="disclaimer" class="mt-5">
+        <h2>注意事項・免責事項</h2>
+        <ul>
+          <li>
+            <strong>非公式ソフトウェア:</strong>
+            本ソフトは個人開発の非公式ツールであり、株式会社AbemaTVとは一切関係ありません。
+          </li>
+          <li>
+            <strong>動作無保証:</strong>
+            公式サービスの仕様変更等により、予告なく動作しなくなる可能性があります。
+          </li>
+          <li>
+            <strong>サポートについて:</strong>
+            GitHubのIssueは受け付けていますが、<strong
+              >原則としてサポートは行いません。</strong
+            >
+            不具合修正や機能追加の保証はいたしかねます。Forkしての改修は歓迎いたします。
+          </li>
+          <li>
+            <strong>自己責任:</strong>
+            本ソフトの使用によって生じたいかなる損害についても、作者は一切の責任を負いません。
+          </li>
+          <li>
+            <strong>ライセンス:</strong> 本プロジェクトは
+            <strong>MIT License</strong> に基づいて公開しています。
+          </li>
+        </ul>
+      </section>
+
+      <footer class="mt-5 text-center text-muted">
+        <p>
+          GitHub:
+          <a
+            href="https://github.com/Shizuka-Yuu/aco-horizontal-comment-scroll"
+            target="_blank"
+            >Shizuka-Yuu/aco-horizontal-comment-scroll</a
+          >
+        </p>
+        <div class="mt-3">
+          <p class="mb-1">
+            Support & Development
+            <br />プロジェクト維持（モチベーション・ドメイン・インフラ費）のための支援窓口（任意）です。
+          </p>
+          <a
+            href="https://donate.stripe.com/aFa28s5Up6q28uc97yg3600"
+            class="btn btn-outline-secondary btn-sm"
+            target="_blank"
+            >Stripe で支援する</a
+          >
+        </div>
+        <p class="mt-4">&copy; 2026 Developed by Shizuka-Yuu</p>
+      </footer>
+    </div>
+
+    <!-- 画像拡大用モーダルHTML -->
+    <div id="imageModal" class="image-modal">
+      <img class="image-modal-content" id="modalImage" />
+    </div>
+
+    <script>
+      const REPO_OWNER = "Shizuka-Yuu";
+      const REPO_NAME = "aco-horizontal-comment-scroll";
+
+      fetch(
+        `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/issues?state=open&per_page=5`,
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          const list = document.getElementById("issue-list");
+          if (data.length === 0) {
+            list.innerHTML =
+              "<p>現在、投稿されているスレッドはありません。</p>";
+            return;
+          }
+          list.innerHTML = "";
+          data.forEach((issue) => {
+            const date = new Date(issue.created_at).toLocaleDateString();
+            list.innerHTML += `
+                    <div class="issue-card">
+                        <strong><a href="${issue.html_url}" target="_blank">${issue.title}</a></strong><br>
+                        <small class="text-secondary">投稿者: ${issue.user.login} | 日時: ${date}</small>
+                    </div>
+                `;
+          });
+        })
+        .catch(() => {
+          document.getElementById("issue-list").innerHTML =
+            '<p class="text-danger">掲示板の取得に失敗しました。</p>';
+        });
+
+      // 画像モーダル制御JS
+      (function () {
+        const modal = document.getElementById("imageModal");
+        const modalImg = document.getElementById("modalImage");
+        const targets = document.querySelectorAll("#preview .img-fluid");
+
+        targets.forEach((img) => {
+          img.style.cursor = "zoom-in";
+          img.addEventListener("click", function () {
+            modal.style.display = "flex";
+            modalImg.src = this.src;
+            modalImg.alt = this.alt;
+            document.body.style.overflow = "hidden";
+          });
+        });
+
+        modal.addEventListener("click", function () {
+          this.style.display = "none";
+          document.body.style.overflow = "";
+        });
+      })();
+    </script>
+  </body>
+</html>
