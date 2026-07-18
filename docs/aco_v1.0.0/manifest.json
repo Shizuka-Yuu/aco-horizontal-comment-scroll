@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "ACO Horizontal Comment Scroll",
+  "version": "1.1.0",
+  "description": "Abemaの公式コメントを某動画サイト風に流します（DOM監視＆API自動追従のハイブリッド版）。",
+  "permissions": ["storage", "webRequest"],
+  "host_permissions": [
+    "https://abema.tv/*",
+    "https://api.p-c3-e.abema-tv.com/*",
+    "https://*.akamaized.net/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "scripts": ["background.js"]
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://abema.tv/*"],
+      "js": [
+        "src/config.js",
+        "src/filter.js",
+        "src/renderer.js",
+        "src/scheduler.js",
+        "src/ui.js",
+        "src/api-client.js",
+        "src/news-handler.js",
+        "src/dom-observer.js",
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": false
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "abema-comment-overlay@local.addon",
+      "strict_min_version": "109.0"
+    }
+  }
+}
