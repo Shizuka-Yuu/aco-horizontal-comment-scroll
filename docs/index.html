@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ja">
-  <head>
+  <head prefix="og: http://ogp.me">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Abema Comment Overlay (ACO)</title>
@@ -8,6 +8,33 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
+
+    <!-- タイトル -->
+    <meta property="og:title" content="ACO Horizontal Comment Scroll" />
+    <!-- ページの説明文 -->
+    <meta
+      property="og:description"
+      content="AbemaTV（`https://abema.tv/*`）のライブ配信および番組において、公式のコメントデータを取得し、動画プレイヤー上に某動画サイト風にコメントを右から左へ流すブラウザ拡張機能（Chrome・Firefox用 MV3仕様）です。"
+    />
+    <!-- ページのURL -->
+    <meta
+      property="og:url"
+      content="https://shizuka-yuu.github.io/aco-horizontal-comment-scroll/"
+    />
+    <!-- サイト名 -->
+    <meta property="og:site_name" content="ACO Horizontal Comment Scroll" />
+    <!-- ページのタイプ（トップページはwebsite、記事ページはarticle） -->
+    <meta property="og:type" content="website" />
+
+    <!-- 【重要】OGP画像の設定（推奨サイズ：1200 × 630px） -->
+    <meta
+      property="og:image"
+      content="https://shizuka-yuu.github.io/aco-horizontal-comment-scroll/ogp_img.png"
+    />
+
+    <!-- X（旧Twitter）用の設定 -->
+    <meta name="twitter:card" content="summary_large_image" />
+
     <style>
       body {
         padding-top: 2rem;
