@@ -513,14 +513,24 @@
         <div class="mt-3">
           <p class="mb-1">
             Support & Development
-            <br />プロジェクト維持（コーヒー代・モチベーション・ドメイン・インフラ費）のための支援窓口（任意）です。
+            <br />プロジェクト維持（コーヒー代・モチベーション・ドメイン・インフラ費）のための支援
+            & LIKE 窓口（任意）です。
           </p>
-          <a
-            href="https://donate.stripe.com/aFa28s5Up6q28uc97yg3600"
-            class="btn btn-outline-secondary btn-sm"
-            target="_blank"
-            >Stripe で支援する</a
+          <div
+            class="d-flex justify-content-center align-items-center gap-2 mt-2"
           >
+            <!-- LIKE ボタンを追加 -->
+            <button id="like-btn" class="btn btn-outline-danger btn-sm">
+              LIKE
+              <span id="like-count" class="badge text-bg-danger ms-1">...</span>
+            </button>
+            <a
+              href="https://donate.stripe.com/aFa28s5Up6q28uc97yg3600"
+              class="btn btn-outline-secondary btn-sm"
+              target="_blank"
+              >Stripe で支援する</a
+            >
+          </div>
         </div>
         <p class="mt-4">&copy; 2026 Developed by Shizuka-Yuu</p>
       </footer>
@@ -583,6 +593,11 @@
           document.body.style.overflow = "";
         });
       })();
+    </script>
+    <!-- LIKEボタン制御用モジュール -->
+    <script type="module">
+      import { initLikeButton } from "./like-button.js";
+      initLikeButton("#like-btn", "#like-count");
     </script>
   </body>
 </html>
