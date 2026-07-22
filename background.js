@@ -1,7 +1,38 @@
 let activeSlotId = null;
+let authToken = null;
 
 console.log("[Background] Service Worker / Event Page started.");
 
+// Abema本体の通信から有効な Authorization ヘッダーを自動キャプチャ
+try {
+  chrome.webRequest.onBeforeSendHeaders.addListener(
+    (details) => {
+      if (details.requestHeaders) {
+        const authHeader = details.requestHeaders.find(
+          (h) => h.name.toLowerCase() === "authorization",
+        );
+        if (authHeader && authHeader.value) {
+          authToken = authHeader.value;
+          console.log(
+            "[Background] 🔑 Captured live Authorization token from network.",
+          );
+        }
+      }
+    },
+    { urls: ["https://api.p-c3-e.abema-tv.com/*"] },
+    ["requestHeaders"],
+  );
+  console.log(
+    "[Background] webRequest (onBeforeSendHeaders) listener registered.",
+  );
+} catch (e) {
+  console.error(
+    "[Background] Failed to register onBeforeSendHeaders listener:",
+    e,
+  );
+}
+
+// 動画ストリームからの slotId 検知
 try {
   chrome.webRequest.onBeforeRequest.addListener(
     (details) => {
@@ -57,24 +88,62 @@ api.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "fetchComments") {
     console.log(`[Background] Fetching comments for URL: ${request.url}`);
 
-    const headers = {};
-    if (request.token) {
-      headers["Authorization"] = request.token;
-    }
+    const executeFetch = async (token) => {
+      const headers = {};
+      if (token) headers["Authorization"] = token;
 
-    fetch(request.url, { headers })
-      .then((res) => res.json())
-      .then((data) => {
+      const res = await fetch(request.url, { headers });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        return {
+          status: res.status,
+          error: `HTTP ${res.status}`,
+          details: errData,
+        };
+      }
+      const data = await res.json();
+      return { data };
+    };
+
+    (async () => {
+      // キャプチャ済みのトークン、または request 経由のトークンを使用
+      const tokenToUse = authToken || request.token;
+
+      if (!tokenToUse) {
+        console.warn("[Background] ⚠️ No auth token available yet.");
+      }
+
+      // background.js 内の fetchComments メッセージハンドラー部分
+      const result = await executeFetch(tokenToUse);
+
+      if (result.error) {
+        sendResponse({
+          error: result.error,
+          status: result.status,
+          details: result.details,
+        });
+      } else {
+        // 生データから必要な4プロパティのみを抽出して一次成型
+        const rawComments = Array.isArray(result.data?.comments)
+          ? result.data.comments
+          : [];
+
+        const formattedComments = rawComments.map((c) => ({
+          id: c.id || "",
+          message: c.message || "",
+          createdAtMs: c.createdAtMs || 0,
+          userId: c.userId || "",
+        }));
+
         console.log(
-          `[Background] Fetch success. Comments retrieved: ${data?.comments?.length || 0}`,
+          `[Background] Fetch success. Formatted comments count: ${formattedComments.length}`,
         );
-        sendResponse({ data });
-      })
-      .catch((err) => {
-        console.error("[Background] Fetch error:", err);
-        sendResponse({ error: err.message });
-      });
 
-    return true;
+        // フロントには成型済み配列のみを返却
+        sendResponse({ comments: formattedComments });
+      }
+    })();
+
+    return true; // 非同期応答のため true
   }
 });

@@ -5,8 +5,9 @@
   "description": "Abemaの公式コメントを某動画サイト風に流します（DOM監視＆API自動追従のハイブリッド版）。",
   "permissions": ["storage", "webRequest"],
   "host_permissions": [
-    "https://abema.tv/*",
     "https://api.p-c3-e.abema-tv.com/*",
+    "https://*.abema.io/*",
+    "https://*.abema.tv/*",
     "https://*.akamaized.net/*"
   ],
   "background": {

@@ -15,7 +15,9 @@
       clearTimeout(newsGuidanceTimeoutId);
     }
 
-    console.log("[Content] ⏰ News channel transition detected. Scheduling guidance in 3 seconds...");
+    console.log(
+      "[Content] ⏰ News channel transition detected. Scheduling guidance in 3 seconds...",
+    );
     newsGuidanceTimeoutId = setTimeout(() => {
       if (ns.isNewsChannel()) {
         ns.resetNewsState();
@@ -31,7 +33,9 @@
     if (newsGuidanceTimeoutId) {
       clearTimeout(newsGuidanceTimeoutId);
       newsGuidanceTimeoutId = null;
-      console.log("[Content] ⏰ Scheduled news guidance cancelled (left news channel).");
+      console.log(
+        "[Content] ⏰ Scheduled news guidance cancelled (left news channel).",
+      );
     }
   };
 
