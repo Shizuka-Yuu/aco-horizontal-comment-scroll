@@ -1,4 +1,4 @@
-const API_URL = "https://like-api.shizuka-yuu-0309.workers.dev/";
+const API_URL = "https://like-api.shizuka-db.workers.dev/";
 const STORAGE_KEY = "aco_has_liked";
 
 export function initLikeButton(buttonSelector, countSelector) {
